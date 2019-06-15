@@ -1,0 +1,69 @@
+Sub Homework2()
+    Dim ws As Worksheet
+    Dim activeWs As Worksheet
+    
+    For Each ws In ThisWorkbook.Worksheets
+        ws.Activate
+        
+        Dim s As String
+        s = ws.Name
+        
+        Dim info
+        Set info = CreateObject("Scripting.Dictionary")
+        
+        Dim lastRow, lastColumn As Integer
+        lastRow = Range("A:A").End(xlDown).Row
+        
+        Dim ticker As String
+        ticker = ""
+        
+        Dim stock As TickerStock
+        
+        For i = 2 To lastRow
+            ticker = Cells(i, "A").Value2
+            If Not info.Exists(ticker) Then
+                Set stock = New TickerStock
+                stock.ticker = ticker
+                info.Add Cells(i, "A").Value2, stock
+                stock.openingPrice = Cells(i, "C").Value2
+            End If
+            Set stock = info(Cells(i, "A").Value2)
+            stock.totalVolume = stock.totalVolume + Cells(i, "G").Value2
+            stock.closingPrice = Cells(i, "F").Value2
+            stock.yearlyChange = stock.closingPrice - stock.openingPrice
+            If stock.yearlyChange = 0 Then
+                stock.percentChange = 0
+            ElseIf stock.openingPrice = 0 Then
+                stock.percentChange = Infinity
+            Else
+                stock.percentChange = stock.yearlyChange / stock.openingPrice
+            End If
+        Next i
+        
+        
+        ' Imprimir valores
+        Cells(1, "K").Value = "Ticker"
+        Cells(1, "L").Value = "Total Stock Volume"
+        Cells(1, "M").Value = "Yearly Change"
+        Cells(1, "N").Value = "Percent Change"
+        
+        Dim k
+        k = info.keys()
+        For i = 0 To info.Count - 1
+            Set stock = info(k(i))
+            Cells(i + 2, "K").Value = stock.ticker
+            Cells(i + 2, "L").Value = stock.totalVolume
+            Cells(i + 2, "M").Value = stock.yearlyChange
+            If Cells(i + 2, "M").Value2 < 0 Then
+                Cells(i + 2, "M").Interior.ColorIndex = 3
+            ElseIf Cells(i + 2, "M").Value2 > 0 Then
+                Cells(i + 2, "M").Interior.ColorIndex = 4
+            End If
+            Cells(i + 2, "N").Value = stock.percentChange
+        Next i
+        
+        Range("N:N").NumberFormat = "0.00%"
+        
+    Next
+    
+End Sub

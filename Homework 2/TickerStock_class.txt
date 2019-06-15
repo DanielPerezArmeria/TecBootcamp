@@ -1,0 +1,7 @@
+Public ticker As String
+Public yearlyChange As Double
+Public percentChange As Double
+Public totalVolume As Double
+
+Public openingPrice As Double
+Public closingPrice As Double
