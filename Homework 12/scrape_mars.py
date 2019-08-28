@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup as bs
 import requests
 from splinter import Browser
 import pymongo
+import re
 
 
 conn = 'mongodb://localhost:27017'
@@ -30,20 +31,19 @@ def scrapeMars():
 		marsImagesUrlParam = "/spaceimages/?search=&category=Mars"
 		browser.visit(jplUrl + marsImagesUrlParam)
 		soup = bs(browser.html, 'html.parser')
-		article = soup.find("article", class_="carousel_item")
-		image = article["style"].split("'")
-		featured_image_url = jplUrl + image[1]
+		imageUrl = soup.find("a", class_="button fancybox")['data-fancybox-href']
+		featured_image_url = jplUrl + imageUrl
 
 
 		# Mars Weather
 		marsWeatherTwitterUrl = f"https://twitter.com/marswxreport?lang=en"
 		browser.visit(marsWeatherTwitterUrl)
 		soup = bs(browser.html, 'html.parser')
-		mars_weather = soup.find("div", class_="js-tweet-text-container")
-		mars_weather = mars_weather.p.get_text("|").split("|")[0]
-		mars_weather = mars_weather.replace("\n", ", ")
+		# Gets the last weather tweet, not some other news tweets
+		mars_weather = soup.find('p', text = re.compile('InSight'), 
+                       attrs = {'class' : 'TweetTextSize TweetTextSize--normal js-tweet-text tweet-text'}).text
 
-
+		print(mars_weather)
 		# Mars Facts
 		marsFactsUrl = f"https://space-facts.com/mars/"
 		marsFacts = pd.read_html(marsFactsUrl)
